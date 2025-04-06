@@ -1,0 +1,184 @@
+{{template "base" .}}
+
+{{define "content" }}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="mt-5">Blog System</h1>
+                <hr>
+
+
+                <div>
+                <form>
+  <label for="fname">Name:</label>
+  <input type="text" id="name" name="name"><br><br>
+
+  <label for="fname">Author:</label>
+  <input type="text" id="author" name="author"><br><br>
+
+  <label for="fname">Description:</label>
+  <textarea id="description" name="description"></textarea>
+  <br><br>
+ 
+  <input id="addBtn" type="submit" value="Submit">
+</form>
+                </div>
+
+                <div id="output" class="mt-5" style="outline: 1px solid silver; padding: 2em;">
+                    <span class="text-muted">Output shows here...</span>
+                </div>
+            </div>
+        </div>
+        
+         <div class="row">
+            <div class="col">
+                <h4 class="mt-5">Sent</h4>
+                <div class="mt-1" style="outline: 1px solid silver; padding: 2em;">
+                    <pre id="payload"><span class="text-muted">Nothing sent yet...</span></pre>
+                </div>
+            </div>
+            <div class="col">
+                <h4 class="mt-5">Received</h4>
+                <div class="mt-1" style="outline: 1px solid silver; padding: 2em;">
+                    <pre id="received"><span class="text-muted">Nothing received yet...</span></pre>
+                </div>
+            </div>
+        </div>
+        
+        <br/><br/>
+        <a id="getBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Get Blog</a>
+        <br/><br/>
+        <div>
+        <table id="blogTable" border="1" style="border:1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Author</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Blog data will be inserted here -->
+        </tbody>
+    </table>
+    </div>
+    </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+    let brokerBtn = document.getElementById("brokerBtn");
+    let authBrokerBtn = document.getElementById("authBrokerBtn");
+    let logBtn = document.getElementById("logBtn");
+    let output = document.getElementById("output");
+    let sent = document.getElementById("payload");
+    let recevied = document.getElementById("received");
+
+
+    let addBtn = document.getElementById("addBtn");
+
+addBtn.addEventListener("click", function(event) {
+   event.preventDefault(); 
+        const payload = {
+           name:document.getElementById("name").value,
+           author:document.getElementById("author").value,
+           description:document.getElementById("description").value
+        }
+
+console.log(payload)
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+
+        const body = {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: headers,
+        }
+
+        fetch("http:\/\/localhost:8081/todo", body)
+        .then((response) => response.json())
+        .then((data) => {
+            sent.innerHTML = JSON.stringify(payload, undefined, 4);
+            received.innerHTML = JSON.stringify(data, undefined, 4);
+            if (data.error) {
+                output.innerHTML += `<br><strong>Error:</strong> ${data.message}`;
+            } else {
+                output.innerHTML += `<br><strong>Response from broker service</strong>: ${data.message}`;
+            }
+        })
+        .catch((error) => {
+            output.innerHTML += "<br><br>Eror: " + error;
+        })
+    })
+
+      let blogData = [
+    { name: 'Blog 1', description: 'This is blog 1 description', author: 'Author 1' },
+    { name: 'Blog 2', description: 'This is blog 2 description', author: 'Author 2' },
+    { name: 'Blog 3', description: 'This is blog 3 description', author: 'Author 3' }
+];
+
+let blogTableBody = document.querySelector('#blogTable tbody'); // Get the tbody of the table
+
+// Loop through the blogData array and create a new row for each blog
+   blogData.forEach(function(blog) {
+            // Create a new row for each blog
+            let row = document.createElement('tr');
+
+            // Apply styles to each row
+            row.style.backgroundColor = '#f2f2f2';
+
+            // Create and append cells to the row
+            let nameCell = document.createElement('td');
+            nameCell.style.padding = '12px';
+            nameCell.style.textAlign = 'left';
+            nameCell.style.border = '1px solid #ddd';
+            nameCell.textContent = blog.name; // Insert blog name
+            row.appendChild(nameCell);
+
+            let authorCell = document.createElement('td');
+            authorCell.style.padding = '12px';
+            authorCell.style.textAlign = 'left';
+            authorCell.style.border = '1px solid #ddd';
+            authorCell.textContent = blog.author; // Insert author
+            row.appendChild(authorCell);
+
+            let descriptionCell = document.createElement('td');
+            descriptionCell.style.padding = '12px';
+            descriptionCell.style.textAlign = 'left';
+            descriptionCell.style.border = '1px solid #ddd';
+            descriptionCell.textContent = blog.description; // Insert description
+            row.appendChild(descriptionCell);
+
+            // Append the row to the table body
+            blogTableBody.appendChild(row);
+        });
+
+
+
+
+  getBtn.addEventListener("click", function() {
+
+        const body = {
+            method: 'POST',
+        }
+
+        fetch("http:\/\/localhost:8080", body)
+        .then((response) => response.json())
+        .then((data) => {
+            sent.innerHTML ="empty post request";
+            received.innerHTML = JSON.stringify(data, undefined, 4);
+            if (data.error) {
+                console.log(data.message);
+            } else {
+                output.innerHTML += `<br><strong>Response from broker service</strong>: ${data.message}`;
+            }
+        })
+        .catch((error) => {
+            output.innerHTML += "<br><br>Eror: " + error;
+        })
+    })
+
+
+
+    </script>
+{{end}}
